@@ -1,0 +1,51 @@
+# One-time import: copies this project's files from my live Vercel sites into the repo and commits them.
+# It only downloads files (curl) and runs `git commit`; nothing downloaded is executed.
+# README/.gitignore come from gh-import-kit.vercel.app; everything else from the project's own live site.
+# Safe to delete this file after the first run.
+name: Import project files
+on:
+  push:
+    paths: [".github/workflows/import.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download files from the live sites
+        shell: bash
+        run: |
+          set -euo pipefail
+          K=https://gh-import-kit.vercel.app/urban-heat-island-lagos
+          P=https://progress-akpan-portfolio.vercel.app
+          U=$P/projects/urban-heat-island-lagos
+          L=https://lagos-in-layers-1.vercel.app
+          LEAF="leaflet.css leaflet.js LICENSE images/layers-2x.png images/layers.png images/marker-icon-2x.png images/marker-icon.png images/marker-shadow.png"
+          get(){ mkdir -p "$(dirname "$2")"; curl -fsSL --retry 4 --retry-delay 3 "$1" -o "$2"; echo "ok $2"; }
+          get $K/README.md README.md
+          get $K/gitignore.txt .gitignore
+          get $U/code/lagos_uhi_lst.ipynb notebooks/lagos_uhi_lst.ipynb
+          get $U/code/make_maps.py scripts/make_maps.py
+          get $U/code/test_model_synthetic.py tests/test_model_synthetic.py
+          for f in index.html app.js style.css; do get $U/map/$f docs/$f; done
+          for f in change.png excess_2019.png excess_2021.png excess_2023.png excess_2025.png hotspots_change.png lga.geojson lga_panel.json lst_2019.png lst_2021.png lst_2023.png lst_2025.png new_built.png projections.json summary.json; do get $U/map/data/$f docs/data/$f; done
+          for f in $LEAF; do get $U/map/vendor/leaflet/$f docs/vendor/leaflet/$f; done
+          for f in LICENSE.md chart.umd.js; do get $U/map/vendor/chartjs/$f docs/vendor/chartjs/$f; done
+          for f in 01_heat_excess_2019_2025 02_lst_2025 03_change_and_hotspots 04_lga_2025_vs_2029; do get $U/img/$f.jpg results/maps/$f.jpg; done
+          for f in built_by_lga lga_projection suhi_by_epoch trend_projection webmap; do get $U/img/$f.jpg results/figures/$f.jpg; done
+          sed -i 's#href="\.\./"#href="https://progress-akpan-portfolio.vercel.app/projects/urban-heat-island-lagos/"#g' docs/index.html
+          python -m pip install -q jupytext numpy
+          jupytext --to py:percent notebooks/lagos_uhi_lst.ipynb
+          if python tests/test_model_synthetic.py; then echo TEST_PASSED; else echo TEST_FAILED; fi
+          rm -rf tests/__pycache__ notebooks/__pycache__
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "Progress Peter Akpan"
+          git config user.email "357548878+Progress-peter@users.noreply.github.com"
+          git add -A
+          printf '%s\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_016mDH8SNRmcV7Z2q514LUHT\n' "Add Lagos urban heat island project: notebook, web map, results and README" | git commit -q -F -
+          git push origin HEAD:main
+          echo "FILES: $(git ls-files | wc -l)"
