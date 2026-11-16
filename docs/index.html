@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lagos Urban Heat Island 2019–2029</title>
+  <meta name="description" content="Surface urban heat island trend for Lagos State, Nigeria, 2019–2025, from Landsat 8/9 land surface temperature, with 2027 and 2029 scenario projections.">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Lagos Urban Heat Island, 2019–2029</h1>
+      <p class="sub">Landsat 8/9 land surface temperature · Dynamic World built-up · 20 LGAs · observed 2019–2025 · scenarios to 2029</p>
+    </div>
+    <a class="repo" href="https://progress-akpan-portfolio.vercel.app/projects/urban-heat-island-lagos/" id="repo-link">Full case study ←</a>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main class="layout">
+    <section class="map-wrap">
+      <div id="map" aria-label="Map of land surface temperature over Lagos State"></div>
+      <div class="map-controls">
+        <div class="seg" id="epochs" role="tablist" aria-label="Epoch"></div>
+        <div class="seg" id="modes" role="tablist" aria-label="Surface">
+          <button data-mode="excess" class="on">Heat excess</button>
+          <button data-mode="lst">Temperature</button>
+        </div>
+        <label><input type="checkbox" id="t-surface" checked> Surface layer</label>
+        <label><input type="checkbox" id="t-change"> <span id="lab-change">Change in heat excess</span></label>
+        <label><input type="checkbox" id="t-persist"> <span id="lab-persist">Hotspot change</span></label>
+        <label><input type="checkbox" id="t-built"> <span id="lab-built">New built-up</span></label>
+        <label><input type="checkbox" id="t-lga" checked> LGA boundaries</label>
+        <label class="op">Opacity <input type="range" id="op" min="0" max="1" step="0.05" value="0.8"></label>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <p class="epoch-title" id="epoch-title"></p>
+      <div class="kpis" id="kpis"></div>
+      <p class="note" id="epoch-note"></p>
+
+      <h2>Epochs at a glance</h2>
+      <div class="tablewrap"><table id="epoch-table"></table></div>
+
+      <h2>Trend and projection</h2>
+      <p class="note">Land-area-weighted mean heat excess of Lagos LGAs (LGA mean LST − vegetated-land mean LST, same epoch). Bands are 95% bootstrap intervals.</p>
+      <div class="chart"><canvas id="c-trend"></canvas></div>
+      <div class="model" id="model"></div>
+
+      <h2 id="lga-title">Heat excess by LGA</h2>
+      <div class="chart tall"><canvas id="c-lga"></canvas></div>
+
+      <h2 id="proj-title">Scenarios by LGA</h2>
+      <div class="chart tall"><canvas id="c-proj"></canvas></div>
+
+      <h2 id="built-title">Built-up expansion</h2>
+      <div class="chart tall"><canvas id="c-built"></canvas></div>
+
+      <h2>Method in brief</h2>
+      <p class="note">LST from Landsat 8/9 Collection 2 Level-2 (ST_B10 → °C), cloud and shadow masked, median per epoch.
+        All four observed epochs use the same December-centred dry season (Nov–Feb). Built-up and vegetated land from Google
+        Dynamic World (annual mode). Heat excess removes year-to-year weather because both terms come from the same images.
+        2027 and 2029 are projections from an LGA fixed-effects model: heat excess = α<sub>LGA</sub> + β·built-up share + γ·year.
+        These are scenarios ("if trends continue"), not observations. Surface temperature is not air temperature.</p>
+      <p class="note credits">Data: USGS/NASA Landsat · Google Dynamic World · FAO GAUL 2015 · processed in Google Earth Engine.
+        Analysis &amp; map: Progress Peter Akpan.</p>
+    </aside>
+  </main>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/chartjs/chart.umd.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
